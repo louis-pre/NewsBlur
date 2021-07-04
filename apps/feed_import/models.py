@@ -1,18 +1,13 @@
 import datetime
 import mongoengine as mongo
-import pickle
-import base64
-from oauth2client.client import Error as OAuthError
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from lxml import etree
 from django.db import models
 from django.contrib.auth.models import User
-from mongoengine.queryset import OperationError
 import vendor.opml as opml
 from apps.rss_feeds.models import Feed, DuplicateFeed
 from apps.reader.models import UserSubscription, UserSubscriptionFolders
 from utils import json_functions as json, urlnorm
-from utils import log as logging
 from utils.feed_functions import timelimit
 from utils.feed_functions import add_object_to_folder
 
