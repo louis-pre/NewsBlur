@@ -37,9 +37,15 @@ debug:
 	- CURRENT_UID=${CURRENT_UID} CURRENT_GID=${CURRENT_GID} docker attach ${newsblur}
 log:
 	- RUNWITHMAKEBUILD=True docker-compose logs -f --tail 20 newsblur_web newsblur_node
+containerkill:
+	- RUNWITHMAKEBUILD=True docker-compose kill ${container}
+containerlog:
+	- RUNWITHMAKEBUILD=True docker-compose logs -f ${container}
+containerbash:
+	- RUNWITHMAKEBUILD=True docker-compose exec ${container} bash
+ps:
+	- RUNWITHMAKEBUILD=True docker-compose ps
 
-logmongo:
-	- RUNWITHMAKEBUILD=True docker-compose logs -f db_mongo
 alllogs:
 	- RUNWITHMAKEBUILD=True docker-compose logs -f --tail 20
 # brings down containers
