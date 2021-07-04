@@ -1,6 +1,8 @@
 import logging
-import pymongo
 import os
+
+import pymongo
+
 # ===================
 # = Server Settings =
 # ===================

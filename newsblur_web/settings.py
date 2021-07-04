@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # ===========================
 # = Directory Declaractions =
@@ -24,17 +24,19 @@ if '/utils' not in ' '.join(sys.path):
 if '/vendor' not in ' '.join(sys.path):
     sys.path.append(VENDOR_ROOT)
 
-import logging
 import datetime
+import logging
+import re
+
+import django.http
 import redis
 import sentry_sdk
+from boto.s3.connection import OrdinaryCallingFormat, S3Connection
+from mongoengine import connect
+from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
-import django.http
-import re
-from mongoengine import connect
-from boto.s3.connection import S3Connection, OrdinaryCallingFormat
+
 from utils import jammit
 
 # ===================
@@ -779,6 +781,7 @@ django.http.request.host_validation_re = re.compile(r"^([a-z0-9.-_\-]+|\[[a-f0-9
 
 
 from django.contrib import auth
+
 
 def monkey_patched_get_user(request):
     """
