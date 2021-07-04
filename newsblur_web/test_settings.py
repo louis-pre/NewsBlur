@@ -1,29 +1,20 @@
 import os
+
 DOCKERBUILD = os.getenv("DOCKERBUILD")
-from newsblur_web.settings import *
-DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-DATABASES['default']['OPTIONS'] = {}
-DATABASES['default']['NAME'] = 'nb.db'
-DATABASES['default']['TEST_NAME'] = os.path.join(BASE_DIR, 'db.sqlite3.test')
 
-
-#DATABASES['default'] = {
-#        'NAME': 'newslur',
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#        'USER': 'newsblur',
-#        'PASSWORD': 'newsblur',
-#        'HOST': 'localhost',
-#    }
+DATABASES = {
+    'default': {
+        'NAME': 'newslur_test',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'newsblur',
+        'PASSWORD': 'newsblur',
+        'HOST': 'db_postgres',
+        'AUTOCOMMIT': True,
+    }
+}
 
 LOGGING_CONFIG = None
 
-# DATABASES = {
-#     'default':{
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': ':memory:',
-#         'TEST_NAME': ':memory:',
-#     },
-# }
 
 
 if DOCKERBUILD:
@@ -43,7 +34,6 @@ else:
 
 MONGO_DATABASE_NAME = 'test_newsblur'
 
-SOUTH_TESTS_MIGRATE = False
 DAYS_OF_UNREAD = 9999
 DAYS_OF_UNREAD_FREE = 9999
 TEST_DEBUG = True
