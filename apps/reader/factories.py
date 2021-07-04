@@ -6,6 +6,9 @@ from apps.rss_feeds.factories import FeedFactory
 from apps.reader.models import Feature, UserSubscription, UserSubscriptionFolders
 from apps.profile.factories import UserFactory
 
+import logging
+logger = logging.getLogger('faker.factory')
+logger.setLevel('DEBUG')
 fake = Faker()
 
 def generate_folder():
