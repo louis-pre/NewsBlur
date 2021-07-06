@@ -822,3 +822,6 @@ def monkey_patched_get_user(request):
     return user or AnonymousUser()
 
 auth.get_user = monkey_patched_get_user
+
+if 'test' in sys.argv:
+    from newsblur_web.test_settings import *
