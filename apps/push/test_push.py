@@ -32,6 +32,8 @@ from django.test import TestCase
 from apps.push.models import PushSubscription, PushSubscriptionManager
 from apps.push.signals import pre_subscribe, verified, updated
 
+from apps.rss_feeds.factories import FeedFactory
+
 class MockResponse(object):
     def __init__(self, status, data=None):
         self.status = status
@@ -51,11 +53,13 @@ class PSHBTestBase:
     urls = 'apps.push.urls'
 
     def setUp(self):
+        self.feed = FeedFactory()
         self._old_send_request = PushSubscriptionManager._send_request
         PushSubscriptionManager._send_request = self._send_request
         self.responses = []
         self.requests = []
         self.signals = []
+
         for connecter in pre_subscribe, verified, updated:
             def callback(signal=None, **kwargs):
                 self.signals.append((signal, kwargs))
@@ -79,7 +83,8 @@ class Test_PSHBSubscriptionManagerTest(PSHBTestBase, TestCase):
         active.
         """
         self.responses.append(MockResponse(204))
-        sub = PushSubscription.objects.subscribe('topic', 'hub', 'callback', 2000)
+        sub = PushSubscription.objects.subscribe('topic', self.feed, hub='hub', callback='callback', lease_seconds=2000)
+
         self.assertEquals(len(self.signals), 2)
         self.assertEquals(self.signals[0], (pre_subscribe, {'sender': sub,
                                                             'created': True}))
@@ -93,12 +98,12 @@ class Test_PSHBSubscriptionManagerTest(PSHBTestBase, TestCase):
         self.assertEquals(len(self.requests), 1)
         request = self.requests[0]
         self.assertEquals(request[0], 'hub')
-        self.assertEquals(request[1]['mode'], 'subscribe')
-        self.assertEquals(request[1]['topic'], 'topic')
-        self.assertEquals(request[1]['callback'], 'callback')
-        self.assertEquals(request[1]['verify'], ('async', 'sync'))
-        self.assertEquals(request[1]['verify_token'], sub.verify_token)
-        self.assertEquals(request[1]['lease_seconds'], 2000)
+        self.assertEquals(request[1]['hub.mode'], 'subscribe')
+        self.assertEquals(request[1]['hub.topic'], 'topic')
+        self.assertEquals(request[1]['hub.callback'], 'callback')
+        self.assertEquals(request[1]['hub.verify'], ['async', 'sync'])
+        self.assertEquals(request[1]['hub.verify_token'], sub.verify_token)
+        self.assertEquals(request[1]['hub.lease_seconds'], 2000)
 
     def test_async_verify(self):
         """
@@ -106,7 +111,7 @@ class Test_PSHBSubscriptionManagerTest(PSHBTestBase, TestCase):
         subscription is verified.
         """
         self.responses.append(MockResponse(202))
-        sub = PushSubscription.objects.subscribe('topic', 'hub', 'callback', 2000)
+        sub = PushSubscription.objects.subscribe('topic', self.feed, hub='hub', callback='callback', lease_seconds=2000)
         self.assertEquals(len(self.signals), 1)
         self.assertEquals(self.signals[0], (pre_subscribe, {'sender': sub,
                                                             'created': True}))
@@ -119,39 +124,27 @@ class Test_PSHBSubscriptionManagerTest(PSHBTestBase, TestCase):
         self.assertEquals(len(self.requests), 1)
         request = self.requests[0]
         self.assertEquals(request[0], 'hub')
-        self.assertEquals(request[1]['mode'], 'subscribe')
-        self.assertEquals(request[1]['topic'], 'topic')
-        self.assertEquals(request[1]['callback'], 'callback')
-        self.assertEquals(request[1]['verify'], ('async', 'sync'))
-        self.assertEquals(request[1]['verify_token'], sub.verify_token)
-        self.assertEquals(request[1]['lease_seconds'], 2000)
+        self.assertEquals(request[1]['hub.mode'], 'subscribe')
+        self.assertEquals(request[1]['hub.topic'], 'topic')
+        self.assertEquals(request[1]['hub.callback'], 'callback')
+        self.assertEquals(request[1]['hub.verify'], ['async', 'sync'])
+        self.assertEquals(request[1]['hub.verify_token'], sub.verify_token)
+        self.assertEquals(request[1]['hub.lease_seconds'], 2000)
 
     def test_least_seconds_default(self):
         """
         If the number of seconds to lease the subscription is not specified, it
-        should default to 2592000 (30 days).
+        should default to 864000 (10 days).
         """
         self.responses.append(MockResponse(202))
-        sub = PushSubscription.objects.subscribe('topic', 'hub', 'callback')
-        rough_expires = datetime.now() + timedelta(seconds=2592000)
+        sub = PushSubscription.objects.subscribe('topic', self.feed, hub='hub', callback='callback')
+        rough_expires = datetime.now() + timedelta(seconds=864000)
         self.assert_(abs(sub.lease_expires - rough_expires).seconds < 5,
                      'lease more than 5 seconds off')
         self.assertEquals(len(self.requests), 1)
         request = self.requests[0]
-        self.assertEquals(request[1]['lease_seconds'], 2592000)
+        self.assertEquals(request[1]['hub.lease_seconds'], 864000)
 
-    def test_error_on_subscribe_raises_URLError(self):
-        """
-        If a non-202/204 status is returned, raise a URLError.
-        """
-        self.responses.append(MockResponse(500, 'error data'))
-        try:
-            PushSubscription.objects.subscribe('topic', 'hub', 'callback')
-        except urllib.error.URLError as e:
-            self.assertEquals(e.reason,
-                              'error subscribing to topic on hub:\nerror data')
-        else:
-            self.fail('subscription did not raise URLError exception')
 
 class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
 
@@ -159,13 +152,15 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
         """
         Getting the callback from the server should verify the subscription.
         """
+        feed = FeedFactory()
         sub = PushSubscription.objects.create(
+            feed_id=feed.id,
             topic='topic',
             hub='hub',
             verified=False)
         verify_token = sub.generate_token('subscribe')
 
-        response = self.client.get(reverse('pubsubhubbub_callback',
+        response = self.client.get(reverse('push-callback',
                                            args=(sub.pk,)),
                                    {'hub.mode': 'subscribe',
                                     'hub.topic': sub.topic,
@@ -174,7 +169,7 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
                                     'hub.verify_token': verify_token})
 
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(response.content, 'challenge')
+        self.assertEquals(response.content, b'challenge')
         sub = PushSubscription.objects.get(pk=sub.pk)
         self.assertEquals(sub.verified, True)
         self.assertEquals(len(self.signals), 1)
@@ -182,20 +177,22 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
 
     def test_404(self):
         """
-        Various things sould return a 404:
+        Various things should return a 404:
 
         * invalid primary key in the URL
         * token doesn't start with 'subscribe'
         * subscription doesn't exist
         * token doesn't match the subscription
         """
+        feed = FeedFactory()
         sub = PushSubscription.objects.create(
+            feed_id=feed.id,
             topic='topic',
             hub='hub',
             verified=False)
         verify_token = sub.generate_token('subscribe')
 
-        response = self.client.get(reverse('pubsubhubbub_callback',
+        response = self.client.get(reverse('push-callback',
                                            args=(0,)),
                                    {'hub.mode': 'subscribe',
                                     'hub.topic': sub.topic,
@@ -205,7 +202,7 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
         self.assertEquals(response.status_code, 404)
         self.assertEquals(len(self.signals), 0)
 
-        response = self.client.get(reverse('pubsubhubbub_callback',
+        response = self.client.get(reverse('push-callback',
                                            args=(sub.pk,)),
                                    {'hub.mode': 'subscribe',
                                     'hub.topic': sub.topic,
@@ -215,7 +212,7 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
         self.assertEquals(response.status_code, 404)
         self.assertEquals(len(self.signals), 0)
 
-        response = self.client.get(reverse('pubsubhubbub_callback',
+        response = self.client.get(reverse('push-callback',
                                            args=(sub.pk,)),
                                    {'hub.mode': 'subscribe',
                                     'hub.topic': sub.topic + 'extra',
@@ -225,7 +222,7 @@ class Test_PSHBCallbackViewCase(PSHBTestBase, TestCase):
         self.assertEquals(response.status_code, 404)
         self.assertEquals(len(self.signals), 0)
 
-        response = self.client.get(reverse('pubsubhubbub_callback',
+        response = self.client.get(reverse('push-callback',
                                            args=(sub.pk,)),
                                    {'hub.mode': 'subscribe',
                                     'hub.topic': sub.topic,
@@ -291,8 +288,8 @@ class Test_PSHBUpdateCase(PSHBTestBase, TestCase):
 
 </atom:feed>
 """
-
         sub = PushSubscription.objects.create(
+            feed=self.feed,
             hub="http://myhub.example.com/endpoint",
             topic="http://publisher.example.com/happycats.xml")
 
@@ -302,7 +299,7 @@ class Test_PSHBUpdateCase(PSHBTestBase, TestCase):
                 (sender, update)),
             weak=False)
 
-        response = self.client.post(reverse('pubsubhubbub_callback',
+        response = self.client.post(reverse('push-callback',
                                             args=(sub.pk,)),
                                     update_data, 'application/atom+xml')
         self.assertEquals(response.status_code, 200)
@@ -353,7 +350,7 @@ class Test_PSHBUpdateCase(PSHBTestBase, TestCase):
 
         self.responses.append(MockResponse(204))
 
-        response = self.client.post(reverse('pubsubhubbub_callback',
+        response = self.client.post(reverse('push-callback',
                                             args=(sub.pk,)),
                                     update_data, 'application/atom+xml')
         self.assertEquals(response.status_code, 200)
@@ -402,7 +399,7 @@ class Test_PSHBUpdateCase(PSHBTestBase, TestCase):
 
         self.responses.append(MockResponse(204))
 
-        response = self.client.post(reverse('pubsubhubbub_callback', kwargs={'push_id': sub.pk}),
+        response = self.client.post(reverse('push-callback', kwargs={'push_id': sub.pk}),
                                     update_data, 'application/atom+xml')
         self.assertEquals(response.status_code, 200)
         self.assertEquals(
@@ -450,7 +447,7 @@ class Test_PSHBUpdateCase(PSHBTestBase, TestCase):
 
         self.responses.append(MockResponse(204))
 
-        response = self.client.post(reverse('pubsubhubbub_callback',
+        response = self.client.post(reverse('push-callback',
                                             args=(sub.pk,)),
                                     update_data, 'application/atom+xml')
         self.assertEquals(response.status_code, 200)

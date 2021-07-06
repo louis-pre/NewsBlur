@@ -62,7 +62,7 @@ def push_callback(request, push_id):
             MFetchHistory.add(feed_id=subscription.feed_id, 
                               fetch_type='push')
         else:
-            logging.debug('   ---> [%-30s] ~FBSkipping feed fetch, no actives: %s' % (subscription.feed[:30], subscription.feed))
+            logging.debug('   ---> [%-30s] ~FBSkipping feed fetch, no actives: %s' % (subscription.feed, subscription.feed))
         
         return HttpResponse('OK')
     return Http404

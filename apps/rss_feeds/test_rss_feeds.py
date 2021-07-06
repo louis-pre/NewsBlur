@@ -15,9 +15,10 @@ class Test_Feed(TestCase):
 
     def setUp(self):
         disconnect()
-        settings.MONGODB = connect('test_newsblur')
-        settings.REDIS_STORY_HASH_POOL = redis.ConnectionPool(host=settings.REDIS_STORY['host'], port=6379, db=10)
-        settings.REDIS_FEED_READ_POOL = redis.ConnectionPool(host=settings.REDIS_SESSIONS['host'], port=6379, db=10)
+        mongo_db = settings.MONGO_DB
+        connect(**mongo_db)
+        settings.REDIS_STORY_HASH_POOL = redis.ConnectionPool(host=settings.REDIS_STORY['host'], port=6579, db=10)
+        settings.REDIS_FEED_READ_POOL = redis.ConnectionPool(host=settings.REDIS_SESSIONS['host'], port=6579, db=10)
 
         r = redis.Redis(connection_pool=settings.REDIS_STORY_HASH_POOL)
         r.delete('RS:1')
@@ -99,8 +100,7 @@ class Test_Feed(TestCase):
         feed = Feed.objects.get(feed_link__contains='slashdot')
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 0)
-
-        management.call_command('refresh_feed', force=1, feed=5, daemonize=False, skip_checks=False)
+        management.call_command('refresh_feed', force=1, feed=feed.id, daemonize=False, skip_checks=False)
 
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 38)
@@ -183,9 +183,7 @@ class Test_Feed(TestCase):
         self.client.login(username='conesus', password='test')
         old_story_guid = "blog.google:443/topics/inside-google/google-earths-incredible-3d-imagery-explained/"
         management.call_command('loaddata', 'google1.json', verbosity=1, skip_checks=False)
-        print((Feed.objects.all()))
         feed = Feed.objects.get(pk=766)
-        print((" Testing test_load_feeds__google: %s" % feed))
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 0)
 

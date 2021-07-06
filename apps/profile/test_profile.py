@@ -4,17 +4,21 @@ from django.test import TestCase
 from django.urls import reverse
 from django.conf import settings
 from mongoengine.connection import connect, disconnect
-
+from apps.rss_feeds.factories import FeedFactory
 class Test_Profile(TestCase):
+    """
     fixtures = [
         'subscriptions.json',
         'rss_feeds.json',
     ]
+    """
     
     def setUp(self):
         disconnect()
-        settings.MONGODB = connect('test_newsblur')
+        mongo_db = settings.MONGO_DB
+        conn = connect(**mongo_db)
         self.client = Client(HTTP_USER_AGENT='Mozilla/5.0')
+        self.feed = FeedFactory()
 
     def tearDown(self):
         settings.MONGODB.drop_database('test_newsblur')

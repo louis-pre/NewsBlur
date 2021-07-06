@@ -1,5 +1,5 @@
 from django.test.client import Client
-from apps.rss_feeds.models import MStory
+from apps.rss_feeds.models import Feed, MStory
 from django.test import TestCase
 from django.core import management
 # from apps.analyzer.classifier import FisherClassifier
@@ -8,7 +8,9 @@ from itertools import groupby
 from apps.analyzer.tokenizer import Tokenizer
 from vendor.reverend.thomas import Bayes
 from apps.analyzer.phrase_filter import PhraseFilter
-
+from apps.profile.factories import UserFactory
+from apps.rss_feeds.factories import FeedFactory
+from apps.reader.factories import UserSubscriptionFactory, UserSubscriptionFoldersFactory
 
 class QuadgramCollocationFinder(nltk.collocations.AbstractCollocationFinder):
     """A tool for the finding and ranking of quadgram collocations or other association measures. 
@@ -107,9 +109,17 @@ class CollocationTest(TestCase):
 
 class ClassifierTest(TestCase):
     
-    fixtures = ['classifiers.json', 'brownstoner.json']
     
     def setUp(self):
+
+        usf = UserSubscriptionFoldersFactory()
+        user = usf.user
+        feed = FeedFactory(
+            feed_link="%(NEWSBLUR_DIR)s/apps/analyzer/fixtures/brownstoner.xml",
+            feed_address="%(NEWSBLUR_DIR)s/apps/analyzer/fixtures/brownstoner.xml"
+        )
+        us = UserSubscriptionFactory(user=user, feed=feed)
+        us4 = UserSubscriptionFactory(user=user, feed=FeedFactory())
         self.client = Client()
     # 
     # def test_filter(self):
@@ -136,13 +146,11 @@ class ClassifierTest(TestCase):
     #     phrasefilter.print_phrases()
     #     
     def test_train(self):
-        # user = User.objects.all()
-        # feed = Feed.objects.all()
         
-        management.call_command('loaddata', 'brownstoner.json', verbosity=0, commit=False, skip_checks=False)
-        management.call_command('refresh_feed', force=1, feed=1, single_threaded=True, daemonize=False, skip_checks=False)
-        management.call_command('loaddata', 'brownstoner2.json', verbosity=0, commit=False, skip_checks=False)
-        management.call_command('refresh_feed', force=1, feed=1, single_threaded=True, daemonize=False, skip_checks=False)
+        management.call_command('loaddata', 'brownstoner.json', verbosity=0, skip_checks=False)
+        management.call_command('refresh_feed', force=1, feed=1, daemonize=False, skip_checks=False)
+        management.call_command('loaddata', 'brownstoner2.json', verbosity=0, skip_checks=False)
+        management.call_command('refresh_feed', force=1, feed=1, daemonize=False, skip_checks=False)
         
         stories = MStory.objects(story_feed_id=1)[:53]
         
