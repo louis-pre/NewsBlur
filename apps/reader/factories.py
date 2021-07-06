@@ -25,7 +25,7 @@ def generate_folders():
     """
     "folders": "[5299728, 644144, 1187026, {\"Brainiacs & Opinion\": [569, 38, 3581, 183139, 1186180, 15]}, {\"Science & Technology\": [731503, 140145, 1272495, 76, 161, 39, {\"Hacker\": [5985150, 3323431]}]}, {\"Humor\": [212379, 3530, 5994357]}, {\"Videos\": [3240, 5168]}]"
     """
-    string = '"folders":['
+    string = '['
     
     for _ in range(3):
         string += f"{fake.pyint()}, "
@@ -36,7 +36,7 @@ def generate_folders():
     return string
 
 class UserSubscriptionFoldersFactory(DjangoModelFactory):
-    user = factory.SubFactory(UserFactory)
+    user = factory.SubFactory('apps.profile.factories.UserFactory')
     folders = FuzzyAttribute(generate_folders)
 
     class Meta:
