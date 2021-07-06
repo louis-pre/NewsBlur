@@ -62,12 +62,12 @@ class PushSubscriptionManager(models.Manager):
         except (requests.ConnectionError, requests.exceptions.MissingSchema):
             response = None
 
-        if response and response.status == 204:
+        if response and response.status_code == 204:
             subscription.verified = True
-        elif response and response.status == 202: # async verification
+        elif response and response.status_code == 202: # async verification
             subscription.verified = False
         else:
-            error = response and response.data or ""
+            error = response and response.text or ""
             if not force_retry and 'You may only subscribe to' in error:
                 extracted_topic = re.search("You may only subscribe to (.*?) ", error)
                 if extracted_topic:
@@ -75,7 +75,7 @@ class PushSubscriptionManager(models.Manager):
                                                   feed=feed, hub=hub, force_retry=True)
             else:
                 logging.debug(u'   ---> [%-30s] ~FR~BKFeed failed to subscribe to push: %s (code: %s)' % (
-                              subscription.feed.log_title[:30], error[:100], response and response.status))
+                              subscription.feed.log_title[:30], error[:100], response and response.status_code))
 
         subscription.save()
         feed.setup_push()
@@ -154,7 +154,7 @@ class PushSubscription(models.Model):
 
             if needs_update:
                 logging.debug(u'   ---> [%-30s] ~FR~BKUpdating PuSH hub/topic: %s / %s' % (
-                              self.feed[:30], hub_url, self_url))
+                              unicode(self.feed)[:30], hub_url, self_url))
                 expiration_time = self.lease_expires - datetime.now()
                 seconds = expiration_time.days*86400 + expiration_time.seconds
                 try:
@@ -163,7 +163,7 @@ class PushSubscription(models.Model):
                         lease_seconds=seconds)
                 except TimeoutError:
                     logging.debug(u'   ---> [%-30s] ~FR~BKTimed out updating PuSH hub/topic: %s / %s' % (
-                                  self.feed[:30], hub_url, self_url))
+                                  unicode(self.feed)[:30], hub_url, self_url))
                     
                     
     def __str__(self):
@@ -173,3 +173,6 @@ class PushSubscription(models.Model):
             verified = u'unverified'
         return u'to %s on %s: %s' % (
             self.topic, self.hub, verified)
+
+    def __str__(self):
+        return str(unicode(self))
