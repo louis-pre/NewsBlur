@@ -564,6 +564,9 @@ if DOCKERBUILD:
 else:
     from newsblur_web.local_settings import *
 
+if 'test' in sys.argv:
+    from newsblur_web.test_settings import *
+
 try:
     from newsblur_web.task_env import *
     print(" ---> Starting NewsBlur task server...")
@@ -668,8 +671,7 @@ MONGO_DB_DEFAULTS = {
     'unicode_decode_error_handler': 'ignore',
     'connect': False,
 }
-MONGO_DB = dict(MONGO_DB_DEFAULTS, **MONGO_DB)
-MONGO_DB_NAME = MONGO_DB.pop('name')
+MONGO_DB_NAME = MONGO_DB.get('name')
 # MONGO_URI = 'mongodb://%s' % (MONGO_DB.pop('host'),)
 
 # if MONGO_DB.get('read_preference', pymongo.ReadPreference.PRIMARY) != pymongo.ReadPreference.PRIMARY:
@@ -679,7 +681,7 @@ MONGO_DB_NAME = MONGO_DB.pop('name')
 # else:
 #     MONGOPRIMARYDB = MONGODB
 # MONGODB = connect(MONGO_DB.pop('name'), host=MONGO_URI, **MONGO_DB)
-MONGODB = connect(MONGO_DB_NAME, **MONGO_DB)
+MONGODB = connect(**MONGO_DB)
 # MONGODB = connect(host="mongodb://localhost:27017/newsblur", connect=False)
 
 MONGO_ANALYTICS_DB_DEFAULTS = {
@@ -822,6 +824,3 @@ def monkey_patched_get_user(request):
     return user or AnonymousUser()
 
 auth.get_user = monkey_patched_get_user
-
-if 'test' in sys.argv:
-    from newsblur_web.test_settings import *

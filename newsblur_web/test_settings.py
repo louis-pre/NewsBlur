@@ -9,7 +9,6 @@ DATABASES = {
         'USER': 'newsblur',
         'PASSWORD': 'newsblur',
         'HOST': 'db_postgres',
-        'AUTOCOMMIT': True,
     }
 }
 
