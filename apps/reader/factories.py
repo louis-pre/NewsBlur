@@ -8,7 +8,7 @@ from apps.profile.factories import UserFactory
 
 import logging
 logger = logging.getLogger('faker.factory')
-logger.setLevel('DEBUG')
+logger.setLevel('ERROR')
 fake = Faker()
 
 def generate_folder():
@@ -45,7 +45,7 @@ class UserSubscriptionFoldersFactory(DjangoModelFactory):
     
 class UserSubscriptionFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
-    feed = FuzzyAttribute(FeedFactory)
+    feed = factory.SubFactory(FeedFactory)
     last_read_date = factory.Faker('date_time')
 
     class Meta:
