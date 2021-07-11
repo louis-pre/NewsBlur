@@ -2,7 +2,7 @@ from faker import Faker
 import factory
 from factory.django import DjangoModelFactory
 from factory.fuzzy import FuzzyAttribute
-from apps.rss_feeds.models import DuplicateFeed, Feed
+from apps.rss_feeds.models import DuplicateFeed, Feed, FeedData
 from django.conf import settings
 
 NEWSBLUR_DIR = settings.NEWSBLUR_DIR
@@ -29,3 +29,7 @@ class FeedFactory(DjangoModelFactory):
 class DuplicateFeedFactory(DjangoModelFactory):
     class Meta:
         model = DuplicateFeed
+
+class FeedDataFactory(DjangoModelFactory):
+    class Meta:
+        model = FeedData
