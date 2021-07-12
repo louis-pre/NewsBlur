@@ -561,8 +561,11 @@ S3_AVATARS_BUCKET_NAME = 'avatars.newsblur.com'
 
 if DOCKERBUILD:
     from newsblur_web.docker_local_settings import *
-else:
+
+try:
     from newsblur_web.local_settings import *
+except ModuleNotFoundError:
+    pass
 
 if 'test' in sys.argv:
     from newsblur_web.test_settings import *
@@ -584,9 +587,11 @@ if not DEBUG:
         'django_ses',
 
     )
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration(), RedisIntegration(), CeleryIntegration()],
+        server_name=SERVER_NAME,
 
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
