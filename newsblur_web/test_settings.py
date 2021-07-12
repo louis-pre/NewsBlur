@@ -29,7 +29,7 @@ else:
         'name': 'newsblur_test',
         'host': '127.0.0.1:27017',
     }
-    SERVER_NAME
+    
 
 MONGO_DATABASE_NAME = 'test_newsblur'
 

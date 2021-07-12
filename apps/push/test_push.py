@@ -24,7 +24,6 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from datetime import datetime, timedelta
-import urllib
 
 from django.urls import reverse
 from django.test import TestCase
