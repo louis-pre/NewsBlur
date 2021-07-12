@@ -18,7 +18,7 @@ DEFAULT_LEASE_SECONDS = (10 * 24 * 60 * 60)  # 10 days
 
 class PushSubscriptionManager(models.Manager):
     
-    @timelimit(5)
+    #@timelimit(5)
     def subscribe(self, topic, feed, hub=None, callback=None,
                   lease_seconds=None, force_retry=False):
         if hub is None:
@@ -154,7 +154,7 @@ class PushSubscription(models.Model):
 
             if needs_update:
                 logging.debug(u'   ---> [%-30s] ~FR~BKUpdating PuSH hub/topic: %s / %s' % (
-                              unicode(self.feed)[:30], hub_url, self_url))
+                              str(self.feed)[:30], hub_url, self_url))
                 expiration_time = self.lease_expires - datetime.now()
                 seconds = expiration_time.days*86400 + expiration_time.seconds
                 try:
@@ -163,7 +163,7 @@ class PushSubscription(models.Model):
                         lease_seconds=seconds)
                 except TimeoutError:
                     logging.debug(u'   ---> [%-30s] ~FR~BKTimed out updating PuSH hub/topic: %s / %s' % (
-                                  unicode(self.feed)[:30], hub_url, self_url))
+                                  str(self.feed)[:30], hub_url, self_url))
                     
                     
     def __str__(self):
@@ -175,4 +175,4 @@ class PushSubscription(models.Model):
             self.topic, self.hub, verified)
 
     def __str__(self):
-        return str(unicode(self))
+        return self
