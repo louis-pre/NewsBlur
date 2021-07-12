@@ -18,7 +18,7 @@ DEFAULT_LEASE_SECONDS = (10 * 24 * 60 * 60)  # 10 days
 
 class PushSubscriptionManager(models.Manager):
     
-    #@timelimit(5)
+    @timelimit(5)
     def subscribe(self, topic, feed, hub=None, callback=None,
                   lease_seconds=None, force_retry=False):
         if hub is None:
