@@ -1,17 +1,19 @@
 import redis
 from utils import json_functions as json
 from django.test.client import Client
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.core import management
 from django.urls import reverse
 from django.conf import settings
 from apps.rss_feeds.models import Feed, MStory
+from apps.rss_feeds.factories import FeedFactory
+from apps.reader.factories import UserSubscriptionFactory, UserSubscriptionFoldersFactory
+from apps.profile.factories import UserFactory
 from mongoengine.connection import connect, disconnect
 
+NEWSBLUR_DIR = settings.NEWSBLUR_DIR
+class Test_Feed(TransactionTestCase):
 
-class Test_Feed(TestCase):
-
-    fixtures = ['initial_data.json']
 
     def setUp(self):
         disconnect()
@@ -26,7 +28,7 @@ class Test_Feed(TestCase):
         r.delete('RS:1:766')
         r.delete('zF:766')
         r.delete('F:766')
-        
+        self.user = UserFactory(username='conesus', password='test')
         self.client = Client()
 
     def tearDown(self):
@@ -34,10 +36,9 @@ class Test_Feed(TestCase):
 
     def test_load_feeds__gawker(self):
         self.client.login(username='conesus', password='test')
+        FeedFactory(pk=10, feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/gawker1.xml')
+        feed = Feed.objects.first()
 
-        management.call_command('loaddata', 'gawker1.json', verbosity=0, skip_checks=False)
-
-        feed = Feed.objects.get(pk=10)
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 0)
 
@@ -46,7 +47,7 @@ class Test_Feed(TestCase):
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 38)
 
-        management.call_command('loaddata', 'gawker2.json', verbosity=0, skip_checks=False)
+        FeedFactory(pk=1, feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/gawker2.xml')
 
         feed.update(force=True)
 
@@ -61,8 +62,12 @@ class Test_Feed(TestCase):
 
     def test_load_feeds__gothamist(self):
         self.client.login(username='conesus', password='test')
+        FeedFactory(
+            pk=4,
+            feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/gothamist_aug_2009_1.xml',
+            feed_link='http://gothamist.com'
+        )
 
-        management.call_command('loaddata', 'gothamist_aug_2009_1.json', verbosity=0, skip_checks=False)
         feed = Feed.objects.get(feed_link__contains='gothamist')
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 0)
@@ -77,7 +82,12 @@ class Test_Feed(TestCase):
         content = json.decode(response.content)
         self.assertEqual(len(content['stories']), 6)
 
-        management.call_command('loaddata', 'gothamist_aug_2009_2.json', verbosity=0, skip_checks=False)
+        FeedFactory(
+            pk=4,
+            feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/gothamist_aug_2009_2.xml',
+            feed_link='http://gothamist.com'
+        
+        )
         feed.update(force=True)
 
         stories = MStory.objects(story_feed_id=feed.pk)
@@ -95,8 +105,14 @@ class Test_Feed(TestCase):
 
         old_story_guid = "tag:google.com,2005:reader/item/4528442633bc7b2b"
 
-        management.call_command('loaddata', 'slashdot1.json', verbosity=0, skip_checks=False)
-
+        feed = FeedFactory(
+            pk=11,
+            feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/slashdot1.xml',
+            feed_link='/apps/rss_feeds/fixtures/slashdot1.html',
+            feed_title='Slashdot',
+            last_update="2011-08-27 02:45:21"
+        )
+        UserSubscriptionFactory(user=self.user, feed=feed)
         feed = Feed.objects.get(feed_link__contains='slashdot')
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 0)
@@ -105,6 +121,7 @@ class Test_Feed(TestCase):
         stories = MStory.objects(story_feed_id=feed.pk)
         self.assertEqual(stories.count(), 38)
 
+        UserSubscriptionFoldersFactory(user=self.user)
         response = self.client.get(reverse('load-feeds'))
         content = json.decode(response.content)
         self.assertEqual(content['feeds']['5']['nt'], 38)
@@ -115,7 +132,14 @@ class Test_Feed(TestCase):
         content = json.decode(response.content)
         self.assertEqual(content['feeds']['5']['nt'], 37)
 
-        management.call_command('loaddata', 'slashdot2.json', verbosity=0, skip_checks=False)
+        FeedFactory(
+            pk=5,
+            feed_address=f'{NEWSBLUR_DIR}/apps/rss_feeds/fixtures/slashdot2.xml',
+            feed_link='/apps/rss_feeds/fixtures/slashdot1.html',
+            feed_title='Slashdot',
+            last_update="2011-08-27 02:45:21"
+        )
+
         management.call_command('refresh_feed', force=1, feed=5, daemonize=False, skip_checks=False)
 
         stories = MStory.objects(story_feed_id=feed.pk)
