@@ -78,6 +78,9 @@ ALLOWED_SUBDOMAINS = [
     'nb',
 ]
 
+if settings.NEWSBLUR_SUBDOMAIN:
+    ALLOWED_SUBDOMAINS.append(settings.NEWSBLUR_SUBDOMAIN)
+
 def get_subdomain(request):
     host = request.META.get('HTTP_HOST')
     if host and host.count(".") == 2:

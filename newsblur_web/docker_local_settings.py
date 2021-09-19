@@ -11,8 +11,10 @@ ADMINS                = (
 
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
-NEWSBLUR_URL          = 'https://localhost'
-SESSION_COOKIE_DOMAIN = 'localhost'
+NEWSBLUR_SUBDOMAIN    = os.getenv('NEWSBLUR_SUBDOMAIN', 'nb')
+NEWSBLUR_FQDN         = NEWSBLUR_SUBDOMAIN + '.' + os.getenv('NEWSBLUR_DOMAIN') if os.getenv('NEWSBLUR_DOMAIN') else 'localhost'
+NEWSBLUR_URL          = 'https://' + NEWSBLUR_FQDN
+SESSION_COOKIE_DOMAIN = NEWSBLUR_FQDN
 
 # ===================
 # = Global Settings =
