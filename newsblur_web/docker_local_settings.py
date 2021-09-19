@@ -44,6 +44,7 @@ AUTO_PREMIUM_NEW_USERS = True
 AUTO_ENABLE_NEW_USERS = True
 ENFORCE_SIGNUP_CAPTCHA = False
 ENABLE_PUSH = False
+TIME_ZONE = os.getenv('TZ', 'GMT')
 
 CACHES = {
     'default': {
