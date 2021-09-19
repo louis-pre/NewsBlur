@@ -11,9 +11,11 @@ ADMINS                = (
 
 SERVER_EMAIL          = 'server@newsblur.com'
 HELLO_EMAIL           = 'hello@newsblur.com'
-NEWSBLUR_URL          = 'https://localhost'
-PUSH_DOMAIN           = 'localhost'
-SESSION_COOKIE_DOMAIN = 'localhost'
+NEWSBLUR_SUBDOMAIN    = os.getenv('NEWSBLUR_SUBDOMAIN', 'nb')
+NEWSBLUR_FQDN         = NEWSBLUR_SUBDOMAIN + '.' + os.getenv('NEWSBLUR_DOMAIN') if os.getenv('NEWSBLUR_DOMAIN') else 'localhost'
+NEWSBLUR_URL          = 'https://' + NEWSBLUR_FQDN
+PUSH_DOMAIN           = NEWSBLUR_FQDN
+SESSION_COOKIE_DOMAIN = NEWSBLUR_FQDN
 
 # ===================
 # = Global Settings =
@@ -23,15 +25,15 @@ DOCKERBUILD = True
 DEBUG = False
 DEBUG = True
 
-# DEBUG_ASSETS controls JS/CSS asset packaging. Turning this off requires you to run 
+# DEBUG_ASSETS controls JS/CSS asset packaging. Turning this off requires you to run
 # `./manage.py collectstatic` first. Turn this on for development so you can see
-# changes in your JS/CSS. 
+# changes in your JS/CSS.
 DEBUG_ASSETS = False # Make sure to run `./manage.py collectstatic` first
 DEBUG_ASSETS = False  # Make sure to run `./manage.py collectstatic` first
 DEBUG_ASSETS = True
 
 # DEBUG_QUERIES controls the output of the database query logs. Can be rather verbose
-# but is useful to catch slow running queries. A summary is also useful in cutting 
+# but is useful to catch slow running queries. A summary is also useful in cutting
 # down verbosity.
 DEBUG_QUERIES = DEBUG
 DEBUG_QUERIES_SUMMARY_ONLY = True
