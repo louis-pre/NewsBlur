@@ -81,6 +81,8 @@ clients/android/NewsBlurTest/local.properties
 media/safari/NewsBlur.safariextz
 
 # IDE files
+NewsBlur.iml
+clients/android/.idea/
 clients/android/NewsBlur/.idea
 clients/android/NewsBlur/.gradle
 clients/android/NewsBlur/build.gradle
