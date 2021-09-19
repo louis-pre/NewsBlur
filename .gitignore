@@ -60,6 +60,13 @@ docker/postgres/postgres.conf
 media/safari/NewsBlur.safariextz
 
 # IDE files
+NewsBlur.iml
+clients/android/.idea/
+clients/android/NewsBlur/.idea
+clients/android/NewsBlur/.gradle
+clients/android/NewsBlur/build.gradle
+clients/android/NewsBlur/gradlew*
+clients/android/NewsBlur/settings.gradle
 /docker/volumes/*
 
 **/node_modules
