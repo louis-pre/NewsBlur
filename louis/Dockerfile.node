@@ -1,0 +1,3 @@
+FROM newsblur/newsblur_node:latest@sha256:a70a520ab5c669ae4490880ee7a6bb89ee9b212380e228942a33e69547657888
+
+COPY ./node /srv

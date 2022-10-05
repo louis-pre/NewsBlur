@@ -1,0 +1,4 @@
+FROM redis:7.0.5
+
+COPY ./docker/redis/redis.conf /etc/redis/redis.conf
+COPY ./docker/redis/redis_server.conf /usr/local/etc/redis/redis_replica.conf

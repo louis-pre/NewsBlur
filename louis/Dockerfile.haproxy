@@ -1,0 +1,4 @@
+FROM haproxy:2.6.6-alpine
+
+COPY ./docker/haproxy/haproxy.docker-compose.cfg /usr/local/etc/haproxy/haproxy.cfg
+COPY . /srv/newsblur

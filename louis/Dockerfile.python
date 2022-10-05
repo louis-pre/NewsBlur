@@ -1,0 +1,3 @@
+FROM newsblur/newsblur_python3:latest@sha256:2926791308befba327d6d28c3ba95aad756e910913f4d47920f40bb8a4599d99
+
+COPY . /srv/newsblur
