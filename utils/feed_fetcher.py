@@ -452,7 +452,7 @@ class FetchFeed:
                 'link': link,
                 'description': content,
                 'author_name': username,
-                'categories': [],
+                'categories': [duration_sec <= 65 and 'short' or 'long'],
                 'unique_id': "tag:youtube.com,2008:video:%s" % video['id'],
                 'pubdate': dateutil.parser.parse(video['snippet']['publishedAt']),
             }
