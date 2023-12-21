@@ -2,3 +2,10 @@
 venv/
 .vscode
 louis/
+clients/
+blog/
+media/img/iphone/
+media/img/android/
+media/img/vectors/*.ai
+media/img/vectors/NEWSBLUR.ai
+media/img/vectors/NEWSBLUR.emf
