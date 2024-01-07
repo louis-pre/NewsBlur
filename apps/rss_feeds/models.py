@@ -2850,7 +2850,9 @@ class MStory(mongo.Document):
             if not video_id:
                 logging.debug(f" ***> Couldn't find youtube url in {video_thumbnail}: {video_src}")
                 continue
-            video_img_url = f"https://img.youtube.com/vi/{video_id.groups()[0]}/0.jpg"
+            # Setting the thumbnail to the medium quality, other known options are hqdefault.jpg and hq720.jpg
+            # Known options are hqdefault (not always in 16:9), mqdefault (always in 16:9, I think) and hq720 
+            video_img_url = f"https://img.youtube.com/vi/{video_id.groups()[0]}/hq720.jpg" 
             iframe_index = story_content.index('<iframe')
             try:
                 img_index = story_content.index('<img')*3
