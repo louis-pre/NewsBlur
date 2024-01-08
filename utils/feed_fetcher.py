@@ -383,7 +383,7 @@ class FetchFeed:
             return
 
         data = {}
-        data['title'] = "%s's YouTube Videos" % username if 'Uploads' not in username else username
+        data['title'] = username
         data['link'] = channel_url
         data['description'] = description
         data['lastBuildDate'] = datetime.datetime.utcnow()
