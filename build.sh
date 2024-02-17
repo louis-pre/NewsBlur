@@ -12,9 +12,9 @@ docker build -f louis/Dockerfile.python -t ${REGISTRY}/newsblur_python -t ${REGI
 # docker build -f louis/Dockerfile.elasticsearch -t ${REGISTRY}/newsblur_elasticsearch -t ${REGISTRY}/newsblur_elasticsearch:$MOST_RECENT_ANCESTOR .
 # docker build -f louis/Dockerfile.haproxy -t ${REGISTRY}/newsblur_haproxy -t ${REGISTRY}/newsblur_haproxy:$MOST_RECENT_ANCESTOR .
 
-docker push --all-tags ${REGISTRY}/newsblur_python
-# docker push --all-tags ${REGISTRY}/newsblur_node
-# docker push --all-tags ${REGISTRY}/newsblur_redis
-# docker push --all-tags ${REGISTRY}/newsblur_nginx
-# docker push --all-tags ${REGISTRY}/newsblur_elasticsearch
-# docker push --all-tags ${REGISTRY}/newsblur_haproxy
+docker push ${REGISTRY}/newsblur_python:$MOST_RECENT_ANCESTOR
+# docker push ${REGISTRY}/newsblur_node:$MOST_RECENT_ANCESTOR
+# docker push ${REGISTRY}/newsblur_redis:$MOST_RECENT_ANCESTOR
+# docker push ${REGISTRY}/newsblur_nginx:$MOST_RECENT_ANCESTOR
+# docker push ${REGISTRY}/newsblur_elasticsearch:$MOST_RECENT_ANCESTOR
+# docker push ${REGISTRY}/newsblur_haproxy:$MOST_RECENT_ANCESTOR
