@@ -454,17 +454,14 @@ class Feed(models.Model):
             feed = cls.objects.filter(
                 branch_from_feed=None
             ).filter(**criteria('feed_address', address)).order_by('-num_subscribers')
-            logging.debug(" ---> DEBUG - STEP 01 :  ~SB%s" % feed)
             if not feed:
                 duplicate_feed = DuplicateFeed.objects.filter(**criteria('duplicate_address', address))
                 if duplicate_feed and len(duplicate_feed) > offset:
                     feed = [duplicate_feed[offset].feed]
-            logging.debug(" ---> DEBUG - STEP 02 :  ~SB%s" % feed)
             if not feed and aggressive:
                 feed = cls.objects.filter(
                     branch_from_feed=None
                 ).filter(**criteria('feed_link', address)).order_by('-num_subscribers')
-            logging.debug(" ---> DEBUG - STEP 03 :  ~SB%s" % feed)
                 
             return feed
         
@@ -526,22 +523,16 @@ class Feed(models.Model):
                 
         # Check for JSON feed
         if not feed and fetch and create:
-            logging.debug(" ---> DEBUG - STEP 4 :  ~SB%s" % feed)
             try:
                 r = requests.get(url)
             except (requests.ConnectionError, requests.models.InvalidURL) as err:
-                logging.debug(" ---> DEBUG - STEP 41 :  ~SB%s" % err)
                 r = None
-            logging.debug(" ---> DEBUG - STEP 421 :  %s" % r)
-            logging.debug(" ---> DEBUG - STEP 422 :  %s" % url)
             if r and 'application/json' in r.headers.get('Content-Type'):
-                logging.debug(" ---> DEBUG - STEP 43 :  ~SB%s" % err)
                 feed = cls.objects.create(feed_address=url)
                 feed = feed.update()
         
         # Still nothing? Maybe the URL has some clues.
         if not feed and fetch and len(found_feed_urls):
-            logging.debug(" ---> DEBUG - STEP 5 :  ~SB%s" % feed)
             feed_finder_url = found_feed_urls[0]
             feed = by_url(feed_finder_url)
             if not feed and create:
